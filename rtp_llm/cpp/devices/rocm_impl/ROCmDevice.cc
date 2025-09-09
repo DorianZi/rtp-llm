@@ -26,6 +26,8 @@ ROCmDevice::ROCmDevice(const DeviceInitParams& params): DeviceBase(params) {
     ROCM_CHECK(hipSetDevice(params.device_id));
     torch_default_stream_ = std::make_unique<at::hip::HIPStreamMasqueradingAsCUDA>(at::hip::getDefaultHIPStreamMasqueradingAsCUDA());
     stream_ = torch_default_stream_->stream();
+    communication_stream_ = at::hip::getStreamFromPool(true).stream();
+
     ROCM_CHECK(hipStreamCreate(&assist_stream_));
     current_stream_ = stream_;
     ROCM_CHECK(hipGetDeviceProperties(&rocmDevProp, device_id_));
@@ -144,6 +146,7 @@ ROCmDevice::~ROCmDevice() {
     }
     hipblas_mm_wrapper_.reset();
     ROCM_CHECK(hipStreamDestroy(stream_));
+    ROCM_CHECK(hipStreamDestroy(communication_stream_));
     ROCM_CHECK(hipStreamDestroy(assist_stream_));
     ROCM_CHECK(hipblasDestroy(hipblas_handle_));
     ROCM_CHECK(hipblasLtDestroy(hipblaslt_handle_));
