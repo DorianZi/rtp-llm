@@ -117,6 +117,7 @@ public:
     ~ROCmEvent() override;
 
     void synchronize() const override;
+    hipEvent_t getEvent() const { return event_; }
     bool checkReadiness() const override;
 
 private:
@@ -224,6 +225,7 @@ public:
         ROCM_CHECK(hipSetDevice(device_id_));
     }
     DeviceEventPtr createEvent() override;
+    DeviceEventPtr createTorchEvent() override;
 
     BufferPtr quantize(const QuantizeParams& params) override;
     BufferPtr dequantize(const QuantizeParams& params);

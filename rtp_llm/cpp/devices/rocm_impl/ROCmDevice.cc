@@ -9,6 +9,7 @@
 
 #include "rtp_llm/cpp/kernels/rmsnormKernels.h"
 #include "rtp_llm/cpp/kernels/activation_kernels.h"
+#include "rtp_llm/cpp/core/torch_utils/TorchEvent.h"
 #include "rtp_llm/cpp/kernels/tensor_ops_kernels.h"
 #include "rtp_llm/cpp/kernels/embedding_kernels.h"
 #include "rtp_llm/cpp/cuda/nccl/nccl_utils_torch.h"
@@ -24,9 +25,15 @@ using namespace rocm;
 
 ROCmDevice::ROCmDevice(const DeviceInitParams& params): DeviceBase(params) {
     ROCM_CHECK(hipSetDevice(params.device_id));
-    torch_default_stream_ = std::make_unique<at::hip::HIPStreamMasqueradingAsCUDA>(at::hip::getDefaultHIPStreamMasqueradingAsCUDA());
-    stream_ = torch_default_stream_->stream();
-    communication_stream_ = at::hip::getStreamFromPool(true).stream();
+    if (init_params_.device_resource_config.not_use_default_stream) {
+        torch_default_stream_ = std::make_unique<at::hip::HIPStreamMasqueradingAsCUDA>(at::hip::getStreamFromPoolMasqueradingAsCUDA(true));
+    } else {
+        torch_default_stream_ = std::make_unique<at::hip::HIPStreamMasqueradingAsCUDA>(at::hip::getDefaultHIPStreamMasqueradingAsCUDA());
+    }
+    torch_comm_stream_ = std::make_unique<at::hip::HIPStreamMasqueradingAsCUDA>(at::hip::getStreamFromPoolMasqueradingAsCUDA(true));
+    at::hip::setCurrentHIPStreamMasqueradingAsCUDA(*torch_default_stream_);
+    stream_               = torch_default_stream_->stream();
+    communication_stream_ = torch_comm_stream_->stream();
 
     ROCM_CHECK(hipStreamCreate(&assist_stream_));
     current_stream_ = stream_;
@@ -559,6 +566,10 @@ RTP_LLM_REGISTER_DEVICE(ROCm);
 
 DeviceEventPtr ROCmDevice::createEvent() {
     return std::make_unique<ROCmEvent>(stream_);
+}
+
+DeviceEventPtr ROCmDevice::createTorchEvent() {
+    return std::make_unique<TorchEvent>(*torch_default_stream_);
 }
 
 ROCmEvent::ROCmEvent(hipStream_t stream): stream_(stream) {
