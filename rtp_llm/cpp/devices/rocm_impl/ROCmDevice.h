@@ -11,6 +11,9 @@
 #include <hip/hip_bf16.h>
 #endif
 
+//#include "c10/hip/HIPGuard.h"
+#include "ATen/hip/impl/HIPGuardImplMasqueradingAsCUDA.h"
+
 #include "rtp_llm/cpp/cuda/nccl/nccl_utils.h"
 
 #include "rtp_llm/cpp/devices/DeviceBase.h"
