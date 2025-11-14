@@ -24,7 +24,7 @@ using namespace rocm;
 
 ROCmDevice::ROCmDevice(const DeviceInitParams& params): DeviceBase(params) {
     ROCM_CHECK(hipSetDevice(params.device_id));
-    torch_default_stream_ = std::make_unique<at::hip::HIPStreamMasqueradingAsCUDA>(at::hip::getDefaultHIPStreamMasqueradingAsCUDA());
+    torch_default_stream_ = std::make_unique<at::hip::HIPStream>(at::hip::getDefaultHIPStream());
     stream_ = torch_default_stream_->stream();
     ROCM_CHECK(hipStreamCreate(&assist_stream_));
     current_stream_ = stream_;

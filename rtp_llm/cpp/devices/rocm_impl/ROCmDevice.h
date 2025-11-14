@@ -285,8 +285,8 @@ private:
     std::unique_ptr<IAllocator>                  hostAllocator_;
     c10::hip::HIPCachingAllocator::HIPAllocator* origin_torch_hip_allocator_;
 
-    std::unique_ptr<at::hip::HIPStreamMasqueradingAsCUDA> torch_default_stream_;
-    std::unique_ptr<at::hip::HIPStreamMasqueradingAsCUDA> torch_comm_stream_;
+    std::unique_ptr<at::hip::HIPStream> torch_default_stream_;
+    std::unique_ptr<at::hip::HIPStream> torch_comm_stream_;
     hipStream_t     stream_ = nullptr;
     hipStream_t     no_block_copy_stream_;
     hipStream_t     communication_stream_;

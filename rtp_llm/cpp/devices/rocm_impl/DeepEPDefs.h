@@ -285,7 +285,7 @@ private:
 class DeepEPCudaEventHook : public DeviceHook {
 public:
     DeepEPCudaEventHook(
-        at::hip::HIPStreamMasqueradingAsCUDA main_stream,
+        at::hip::HIPStream main_stream,
         deep_ep::EventHandle event_handle,
         const std::vector<BufferPtr>& hold_buffers = {},
         const std::vector<torch::Tensor>& hold_tensors = {},
@@ -312,7 +312,7 @@ public:
     }
 
 private:
-    at::hip::HIPStreamMasqueradingAsCUDA main_stream_;
+    at::hip::HIPStream main_stream_;
     deep_ep::EventHandle event_handle_;
     std::vector<BufferPtr> hold_buffers_;
     std::vector<torch::Tensor> hold_tensors_;
